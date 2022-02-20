@@ -1,0 +1,25 @@
+{
+  "name": "criptador",
+  "version": "1.0.0",
+  "description": "Encrypt and decrypt files massively, simply and effortlessly.",
+  "main": "src/index.js",
+  "bin": {
+    "criptador": "./bin/criptador.js"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "encrypt",
+    "decrypt"
+  ],
+  "author": "allnulled",
+  "license": "WTFPL",
+  "dependencies": {
+    "@allnulled/check-that": "^0.0.1",
+    "yargs": "^17.3.1"
+  }
+}
