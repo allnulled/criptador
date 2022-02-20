@@ -11,7 +11,11 @@ Encrypt and decrypt text or files massively, simply and effortlessly. For both, 
 ### From CLI
 
 ```sh
-$ criptador --command encrypt --key "some specific key" --directory . --filepattern '\\.js$'
+$ criptador
+    --command encrypt
+    --key "some specific key"
+    --directory .
+    --filepattern '\\.js$'
 ```
 
 ### From API
