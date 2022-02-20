@@ -4,7 +4,7 @@
   "description": "Encrypt and decrypt files massively, simply and effortlessly.",
   "main": "src/index.js",
   "bin": {
-    "criptador": "./bin/criptador.js"
+    "criptador": "bin/criptador.js"
   },
   "directories": {
     "test": "test"
@@ -21,5 +21,14 @@
   "dependencies": {
     "@allnulled/check-that": "^0.0.1",
     "yargs": "^17.3.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allnulled/criptador.git"
+  },
+  "bugs": {
+    "url": "https://github.com/allnulled/criptador/issues"
+  },
+  "homepage": "https://github.com/allnulled/criptador#readme"
 }
