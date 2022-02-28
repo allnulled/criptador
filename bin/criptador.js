@@ -5,19 +5,48 @@ const Check = require("@allnulled/check-that");
 const yargs = require("yargs").argv;
 
 try {
-    const { command, directory, filepattern, key } = yargs;
-    Check.that(command, "argument: --command", "Required argument --command to be: encrypt or decrypt").isString().hasLengthGreaterThan(0);
-    Check.that(directory, "argument: --directory", "Required argument --directory").isString().hasLengthGreaterThan(0);
-    Check.that(filepattern, "argument: --filepattern", "Required argument --filepattern").isString().hasLengthGreaterThan(0);
-    Check.that(key, "argument: --key", "Required argument --key").isString().hasLengthGreaterThan(0);
+    let { command, file, filepattern = ".*", password, verbose} = yargs;
+    const printHelp = function() {
+        console.log("#######################################");
+        console.log("# This is the only help for criptador #");
+        console.log("#######################################");
+        console.log("");
+        console.log("To use «criptador» simply:");
+        console.log("  $ criptador");
+        console.log("     # Required parameters:   # ");
+        console.log("      --command encrypt      # or decrypt");
+        console.log("      --file 1.txt           # files");
+        console.log("      --file 2.txt           # more files");
+        console.log("      --file myfolder        # folders (recursively)");
+        console.log("      --password secret      # ");
+        console.log("     # Optional parameters:   # ");
+        console.log("      --verbose              # ");
+        console.log("");
+        console.log("#####################[ by allnulled ]##");
+    }
+    if(["encrypt", "decrypt"].indexOf(command) === -1) {
+        command = "help";
+    }
+    if(command === "help") {
+        printHelp();
+        return;
+    }
+    if(typeof file === "string") {
+        file = [file];
+    }
+    Check.that(file, "argument: --file", "Required argument --file").isArray().hasLengthGreaterThan(0);
+    Check.that(password, "argument: --password", "Required argument --password").isString().hasLengthGreaterThan(0);
+    if(!filepattern) {
+        filepattern = [".*"];
+    }
     if(command === "encrypt") {
-        Criptador.encryptFiles(directory, key, filepattern);
-        console.log("OK: Files encrypted successfully.");
+        Criptador.encryptFiles(file, password, filepattern, verbose);
+        console.log("OK: Files encrypted successfully by criptador.");
     } else if(command === "decrypt") {
-        Criptador.decryptFiles(directory, key, filepattern);
-        console.log("OK: Files decrypted successfully.");
+        Criptador.decryptFiles(file, password, filepattern, verbose);
+        console.log("OK: Files decrypted successfully by criptador.");
     } else {
-        throw new Error("Unknown command «" + command + "»");
+        printHelp();
     }
 } catch (error) {
     console.error(error);

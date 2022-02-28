@@ -31,10 +31,9 @@ CriptadorUtils = class {
         let subnodes = fs.readdirSync(dir).map(f => path.resolve(dir, f));
         for (let indexSubnode = 0; indexSubnode < subnodes.length; indexSubnode++) {
             const subnode = subnodes[indexSubnode];
-            const subnodeStat = fs.lstatSync(subnode);
-            if (subnodeStat.isDirectory()) {
+            if (fs.lstatSync(subnode).isDirectory() && !subnode.endsWith("/node_modules")) {
                 files = files.concat(CriptadorUtils.readdirRecursively(subnode));
-            } else {
+            } else if(fs.lstatSync(subnode).isFile()) {
                 files.push(subnode);
             }
         }
@@ -101,28 +100,65 @@ CriptadorUtils = class {
         };
     }
 
-    static xcryptFiles(basedir, filePattern, key, isEncryption = true) {
+    static overridingFile(file, fileContentsFinal, isEncryption, isVerbose, index, total) {
+        try {
+            if(isVerbose) {
+                console.log(`OK: [${index}/${total}] ` + (isEncryption ? "Encrypting" : "Decrypting") + " file: " + file);
+            }
+            CriptadorUtils.writeFileSync(file, fileContentsFinal);
+        } catch (error) {
+            console.error("[!] Error while " + (isEncryption ? "encrypting" : "decrypting") + " file: " + file);
+            console.error("Error details: ", error);
+        }
+    }
+
+    static xcryptFiles(basedir, filePattern, password, isEncryption = true, isVerbose = false) {
+        if(Array.isArray(basedir)) {
+            for(let index = 0; index < basedir.length; index++) {
+                const itemdir = basedir[index];
+                this.xcryptFiles(itemdir, filePattern, password, isEncryption, isVerbose);
+            }
+            return;
+        }
+        const fs = require("fs");
         if(typeof basedir !== "string") {
             throw new Error("Required «basedir» to be a string");
         }
         if(typeof filePattern !== "string") {
             throw new Error("Required «filePattern» to be a string");
         }
-        if(typeof key !== "string") {
-            throw new Error("Required «key» to be a string");
+        if(typeof password !== "string") {
+            throw new Error("Required «password» to be a string");
         }
         if(typeof isEncryption !== "boolean") {
             throw new Error("Required «isEncryption» to be a boolean");
         }
-        const filePatternRegex = new RegExp(filePattern, "g");
-        const filesMatched = CriptadorUtils.readdirRecursively(basedir).filter(f => f.match(filePatternRegex));
-        for(let index = 0; index < filesMatched.length; index++) {
-            const file = filesMatched[index];
-            const fileContents = CriptadorUtils.readFileSync(file);
+        if(!fs.existsSync(basedir)) {
+            throw new Error("Required file or directory «"+ basedir + "» to exist");
+        }
+        if(fs.lstatSync(basedir).isDirectory()) {
+            const filePatternRegex = new RegExp(filePattern, "g");
+            const filesMatched = CriptadorUtils.readdirRecursively(basedir).filter(f => f.match(filePatternRegex));
+            if(isVerbose) {
+                console.log("OK: Matched " + filesMatched.length + " files to encrypt.");
+            }
+            for(let index = 0; index < filesMatched.length; index++) {
+                const file = filesMatched[index];
+                if(fs.lstatSync(file).isFile()) {
+
+                }
+                const fileContents = CriptadorUtils.readFileSync(file);
+                const fileContentsFinal = isEncryption 
+                ? CriptadorUtils.translateKeyIntoAlgorythm(password)(fileContents)
+                : CriptadorUtils.translateKeyIntoReverseAlgorythm(password)(fileContents);
+                CriptadorUtils.overridingFile(file, fileContentsFinal, isEncryption, isVerbose, index+1, filesMatched.length);
+            }
+        } else {
+            const fileContents = CriptadorUtils.readFileSync(basedir);
             const fileContentsFinal = isEncryption 
-                ? CriptadorUtils.translateKeyIntoAlgorythm(key)(fileContents)
-                : CriptadorUtils.translateKeyIntoReverseAlgorythm(key)(fileContents);
-            CriptadorUtils.writeFileSync(file, fileContentsFinal);
+            ? CriptadorUtils.translateKeyIntoAlgorythm(password)(fileContents)
+            : CriptadorUtils.translateKeyIntoReverseAlgorythm(password)(fileContents);
+            CriptadorUtils.overridingFile(basedir, fileContentsFinal, isEncryption, isVerbose, 1, 1);
         }
     }
 
@@ -134,12 +170,12 @@ Criptador = class {
         return CriptadorUtils;
     }
 
-    static encryptFiles(basedir, key, filePattern = ".*") {
-        return CriptadorUtils.xcryptFiles(basedir, filePattern, key, true);
+    static encryptFiles(basedir, key, filePattern = ".*", isVerbose = false) {
+        return CriptadorUtils.xcryptFiles(basedir, filePattern, key, true, isVerbose);
     }
 
-    static decryptFiles(basedir, key, filePattern = ".*") {
-        return CriptadorUtils.xcryptFiles(basedir, filePattern, key, false);
+    static decryptFiles(basedir, key, filePattern = ".*", isVerbose = false) {
+        return CriptadorUtils.xcryptFiles(basedir, filePattern, key, false, isVerbose);
     }
 
     static encrypt(text, key) {
