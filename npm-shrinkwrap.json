@@ -1,12 +1,12 @@
 {
   "name": "criptador",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
       "name": "criptador",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "license": "WTFPL",
       "dependencies": {
         "@allnulled/check-that": "^0.0.1",
@@ -14,7 +14,8 @@
       },
       "bin": {
         "criptador": "bin/criptador.js"
-      }
+      },
+      "devDependencies": {}
     },
     "node_modules/@allnulled/check-that": {
       "version": "0.0.1",
